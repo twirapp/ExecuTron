@@ -5,6 +5,9 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp:/tmp
     restart: unless-stopped
+    networks:
+      - twir
+      - cloudflared
 
 networks:
   twir:

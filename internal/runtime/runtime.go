@@ -100,7 +100,7 @@ func ExecuteCode(ctx context.Context, language, code string) (*Response, error) 
 		Mounts: containerCtx.mounts,
 		Resources: container.Resources{
 			Memory:    128 * 1024 * 1024, // 128 MB
-			NanoCPUs:  500000000,         // 0.5 CPU
+			NanoCPUs:  1000000000,        // 0.5 CPU
 			PidsLimit: &pidsLimit,        // Limit to 100 PIDs
 		},
 		NetworkMode:    network.DefaultNetwork, // Disable networking

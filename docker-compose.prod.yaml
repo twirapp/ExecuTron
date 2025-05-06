@@ -1,0 +1,10 @@
+services:
+  executron:
+    image: twirapp/executron:latest
+    volumes:
+      - /var/run/docker.sock.raw:/var/run/docker.sock
+    restart: unless-stopped
+
+networks:
+  twir:
+    external: true

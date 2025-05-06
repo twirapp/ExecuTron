@@ -1,0 +1,9 @@
+services:
+  executron:
+    build:
+      context: .
+    volumes:
+      - /var/run/docker.sock.raw:/var/run/docker.sock
+    restart: unless-stopped
+    ports:
+      - "8080:8080"

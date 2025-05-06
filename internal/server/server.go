@@ -23,7 +23,7 @@ func New() *Server {
 
 	s := &http.Server{
 		Handler: http.DefaultServeMux,
-		Addr:    ":" + port,
+		Addr:    "0.0.0.0:" + port,
 	}
 
 	return &Server{

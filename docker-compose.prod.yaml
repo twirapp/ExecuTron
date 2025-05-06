@@ -8,3 +8,5 @@ services:
 networks:
   twir:
     external: true
+  cloudflared:
+    external: true

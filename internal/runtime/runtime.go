@@ -16,8 +16,8 @@ import (
 )
 
 type Response struct {
-	Output interface{} `json:"output"` // Changed to interface{} to handle any JSON value
-	Error  string      `json:"error,omitempty"`
+	Result string `json:"result"` // Changed to interface{} to handle any JSON value
+	Error  string `json:"error,omitempty"`
 }
 
 func ExecuteCode(ctx context.Context, language, code string) (*Response, error) {
@@ -160,16 +160,12 @@ func ExecuteCode(ctx context.Context, language, code string) (*Response, error) 
 
 	// Parse the JSON output
 	var output struct {
-		Result interface{} `json:"result"`
-		Error  string      `json:"error"`
+		Result string `json:"result"`
+		Error  string `json:"error"`
 	}
 	if err := json.Unmarshal([]byte(logs), &output); err != nil {
 		return nil, fmt.Errorf("failed to parse output: %v", err)
 	}
 
-	if output.Error != "" {
-		return &Response{Error: output.Error}, nil
-	}
-
-	return &Response{Output: output.Result}, nil
+	return &Response{Result: output.Result, Error: output.Error}, nil
 }

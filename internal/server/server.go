@@ -50,12 +50,6 @@ type Request struct {
 	Code     string `json:"code"`     // Code to execute
 }
 
-// Response represents the execution result.
-type Response struct {
-	Output interface{} `json:"output"` // Changed to interface{} to handle any JSON value
-	Error  string      `json:"error,omitempty"`
-}
-
 func runHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)

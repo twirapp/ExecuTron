@@ -40,7 +40,7 @@ import _ from 'lodash';
 try {
 	const code = readFileSync('/code/user_code.mjs', 'utf8');
 	const result = await eval('(async () => { ' + code + ' })()');
-	console.log(JSON.stringify({ result }));
+	console.log(JSON.stringify({ result: result.toString() }));
 } catch (e) {
 	console.log(JSON.stringify({ error: e.message }));
 }

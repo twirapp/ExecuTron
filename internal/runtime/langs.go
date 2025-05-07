@@ -37,8 +37,10 @@ import { readFileSync } from 'fs';
 import vm from 'node:vm'
 import _ from 'lodash';
 
+const consoleRegex = /console\.(log|debug|info|warn|error|table|trace|group|groupEnd|time|timeEnd)\s*\([^;]*\);?/g;
+
 try {
-	const code = readFileSync('/code/user_code.mjs', 'utf8');
+	const code = readFileSync('/code/user_code.mjs', 'utf8').replace(consoleRegex, '');
 	const result = await eval('(async () => { ' + code + ' })()');
 	console.log(JSON.stringify({ result: result.toString() }));
 } catch (e) {

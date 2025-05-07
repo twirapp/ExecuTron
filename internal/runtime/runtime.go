@@ -39,10 +39,12 @@ func ExecuteCode(ctx context.Context, language, code string) (*Response, error) 
 		return nil, fmt.Errorf("failed to set temp dir permissions: %v", err)
 	}
 
+	containerCtxStart := time.Now()
 	containerCtx := createContainerContext(language)
 	if containerCtx == nil {
 		return nil, fmt.Errorf("unsupported language: %s", language)
 	}
+	fmt.Printf("execute prepare ctx: %v\n", time.Since(containerCtxStart))
 
 	// Write user code to a file
 	userCodePath := filepath.Join(tempDir, containerCtx.userCodeFile)
@@ -115,15 +117,20 @@ func ExecuteCode(ctx context.Context, language, code string) (*Response, error) 
 	containerName := "code-exec-" + uuid.New().String()
 
 	// Create the container
+	createContainerCreate := time.Now()
 	resp, err := cli.ContainerCreate(ctx, containerConfig, hostConfig, nil, nil, containerName)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create container: %v", err)
 	}
+	fmt.Printf("execute ContainerCreate: %v\n", time.Since(createContainerCreate))
 
 	// Start the container
+
+	createContainerStart := time.Now()
 	if err := cli.ContainerStart(ctx, resp.ID, container.StartOptions{}); err != nil {
 		return nil, fmt.Errorf("failed to start container: %v", err)
 	}
+	fmt.Printf("execute ContainerStart: %v\n", time.Since(createContainerStart))
 
 	// Wait for the container to finish with a timeout
 	timeoutCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -157,6 +164,7 @@ func ExecuteCode(ctx context.Context, language, code string) (*Response, error) 
 	if err != nil {
 		return nil, fmt.Errorf("failed to get container logs: %v", err)
 	}
+	fmt.Printf("logs after container start: %v\n", time.Since(createContainerStart))
 
 	// Parse the JSON output
 	var output struct {

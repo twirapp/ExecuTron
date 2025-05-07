@@ -110,7 +110,7 @@ func ExecuteCode(ctx context.Context, language, code string) (*Response, error) 
 		AutoRemove:     true,                   // Remove container after execution
 		SecurityOpt:    []string{"no-new-privileges"},
 		CapDrop:        []string{"ALL"}, // Drop all capabilities
-		Runtime:        "runsc",
+		//Runtime:        "runsc",
 	}
 
 	// Create a unique container name

@@ -132,6 +132,11 @@ func (c *Executor) ExecuteCode(ctx context.Context, language, code string) (*Res
 		Tty:        false,
 	}
 
+	networkMode := container.NetworkMode(network.DefaultNetwork)
+	if os.Getenv("APP_ENV") == "production" {
+		networkMode = container.NetworkMode("container:executron-warp")
+	}
+
 	pidsLimit := int64(100)
 	hostConfig := &container.HostConfig{
 		Mounts: containerCtx.mounts,
@@ -140,9 +145,9 @@ func (c *Executor) ExecuteCode(ctx context.Context, language, code string) (*Res
 			NanoCPUs:  1000000000,        // 0.5 CPU
 			PidsLimit: &pidsLimit,        // Limit to 100 PIDs
 		},
-		NetworkMode:    network.DefaultNetwork, // Disable networking
-		ReadonlyRootfs: true,                   // Read-only root filesystem
-		AutoRemove:     true,                   // Remove container after execution
+		NetworkMode:    networkMode, // Disable networking
+		ReadonlyRootfs: true,        // Read-only root filesystem
+		AutoRemove:     true,        // Remove container after execution
 		SecurityOpt:    []string{"no-new-privileges"},
 		CapDrop:        []string{"ALL"}, // Drop all capabilities
 		//Runtime:        "runsc",

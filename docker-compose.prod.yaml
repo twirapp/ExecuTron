@@ -3,6 +3,7 @@ services:
     image: twirapp/executron:latest
     environment:
       MAX_PARALLEL_CONTAINERS: 100
+      APP_ENV: production
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp:/tmp

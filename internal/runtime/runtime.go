@@ -10,17 +10,56 @@ import (
 	"github.com/docker/docker/daemon/network"
 	"github.com/google/uuid"
 	"io"
+	"log/slog"
 	"os"
 	"path/filepath"
+	"strconv"
+	"sync/atomic"
 	"time"
 )
 
 type Response struct {
-	Result string `json:"result"` // Changed to interface{} to handle any JSON value
+	Result string `json:"result"`
 	Error  string `json:"error,omitempty"`
 }
 
-func ExecuteCode(ctx context.Context, language, code string) (*Response, error) {
+type Executor struct {
+	maxRunedContainers int32
+	runedContainers    atomic.Int32
+}
+
+func New() *Executor {
+	e := &Executor{
+		maxRunedContainers: 0,
+		runedContainers:    atomic.Int32{},
+	}
+
+	maxRunedContainers := os.Getenv("MAX_PARALLEL_CONTAINERS")
+	if maxRunedContainers == "" {
+		e.maxRunedContainers = 100
+		slog.Warn("MAX_PARALLEL_CONTAINERS not set, using default value of 100")
+	} else {
+		parsed, err := strconv.Atoi(maxRunedContainers)
+		if err == nil {
+			e.maxRunedContainers = int32(parsed)
+		} else {
+			slog.Warn("Failed to parse MAX_PARALLEL_CONTAINERS, using default value of 100")
+		}
+	}
+
+	return e
+}
+
+func (c *Executor) ExecuteCode(ctx context.Context, language, code string) (*Response, error) {
+	if c.runedContainers.Load() >= c.maxRunedContainers {
+		for c.runedContainers.Load() >= c.maxRunedContainers {
+			time.Sleep(100 * time.Millisecond)
+		}
+	}
+
+	c.runedContainers.Add(1)
+	defer c.runedContainers.Add(-1)
+
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Docker client: %v", err)

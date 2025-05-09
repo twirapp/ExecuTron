@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/twirapp/executron/internal/runtime"
+	"log/slog"
 	"net/http"
 	"os"
 )
 
 type Server struct {
-	s *http.Server
+	httpServer *http.Server
+	executor   *runtime.Executor
 }
 
 func New() *Server {
@@ -18,22 +20,25 @@ func New() *Server {
 		port = "8080"
 	}
 
-	http.HandleFunc("/run", runHandler)
-	fmt.Println("Server starting on :" + port)
+	mux := http.NewServeMux()
 
-	s := &http.Server{
-		Handler: http.DefaultServeMux,
-		Addr:    "0.0.0.0:" + port,
+	s := Server{
+		httpServer: &http.Server{
+			Handler: mux,
+			Addr:    "0.0.0.0:" + port,
+		},
+		executor: runtime.New(),
 	}
 
-	return &Server{
-		s,
-	}
+	mux.HandleFunc("/run", s.runHandler)
+	slog.Info("Server starting on :" + port)
+
+	return &s
 }
 
 func (c *Server) Run() {
 	go func() {
-		if err := c.s.ListenAndServe(); err != nil {
+		if err := c.httpServer.ListenAndServe(); err != nil {
 			fmt.Fprintf(os.Stderr, "Server failed: %v\n", err)
 			os.Exit(1)
 		}
@@ -41,7 +46,7 @@ func (c *Server) Run() {
 }
 
 func (c *Server) Stop() {
-	c.s.Shutdown(nil)
+	c.httpServer.Shutdown(nil)
 }
 
 // Request represents the JSON payload for code execution.
@@ -50,7 +55,7 @@ type Request struct {
 	Code     string `json:"code"`     // Code to execute
 }
 
-func runHandler(w http.ResponseWriter, r *http.Request) {
+func (c *Server) runHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -67,7 +72,7 @@ func runHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp, err := runtime.ExecuteCode(r.Context(), req.Language, req.Code)
+	resp, err := c.executor.ExecuteCode(r.Context(), req.Language, req.Code)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("Execution failed: %v", err), http.StatusInternalServerError)
 		return

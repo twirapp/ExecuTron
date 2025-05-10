@@ -42,9 +42,13 @@ import _ from 'lodash';
 
 const consoleRegex = /console\.(log|debug|info|warn|error|table|trace|group|groupEnd|time|timeEnd)\s*\([^;]*\);?/g;
 
+async function ExecutronExecuteJsCode() {
+	%s
+}
+
 try {
-	const result = await eval('(async () => { %s })()');
-	console.log(JSON.stringify({ result: result.toString() }));
+	const result = await ExecutronExecuteJsCode()
+	console.log(JSON.stringify({ result: result.toString().replace(consoleRegex, '') }));
 } catch (e) {
 	console.log(JSON.stringify({ error: e.message }));
 }
@@ -73,7 +77,7 @@ try {
 }
 
 func createPyContext(code string) *containerContext {
-	codeLines := []string{}
+	var codeLines []string
 	for _, line := range strings.Split(code, "\n") {
 		codeLines = append(codeLines, fmt.Sprintf("    %s", line))
 	}

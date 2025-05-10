@@ -76,18 +76,9 @@ func (c *Executor) ExecuteCode(ctx context.Context, language, code string) (*Res
 		return nil, fmt.Errorf("failed to set temp dir permissions: %v", err)
 	}
 
-	containerCtx := createContainerContext(language)
+	containerCtx := createContainerContext(language, code)
 	if containerCtx == nil {
 		return nil, fmt.Errorf("unsupported language: %s", language)
-	}
-
-	// Write user code to a file
-	userCodePath := filepath.Join(tempDir, containerCtx.userCodeFile)
-	if err := os.WriteFile(userCodePath, []byte(code), 0644); err != nil {
-		return nil, fmt.Errorf("failed to write user code file: %v", err)
-	}
-	if err := os.Chmod(userCodePath, 0644); err != nil {
-		return nil, fmt.Errorf("failed to set user code file permissions: %v", err)
 	}
 
 	// Write wrapper script to a file
@@ -142,7 +133,7 @@ func (c *Executor) ExecuteCode(ctx context.Context, language, code string) (*Res
 		Mounts: containerCtx.mounts,
 		Resources: container.Resources{
 			Memory:    128 * 1024 * 1024, // 128 MB
-			NanoCPUs:  1000000000,        // 0.5 CPU
+			NanoCPUs:  1000000000,        // 1 CPU
 			PidsLimit: &pidsLimit,        // Limit to 100 PIDs
 		},
 		NetworkMode:    networkMode, // Disable networking

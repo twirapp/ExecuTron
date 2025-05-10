@@ -3,6 +3,7 @@ package runtime
 import (
 	"fmt"
 	"github.com/docker/docker/api/types/mount"
+	"strings"
 )
 
 type containerContext struct {
@@ -72,6 +73,11 @@ try {
 }
 
 func createPyContext(code string) *containerContext {
+	codeLines := []string{}
+	for _, line := range strings.Split(code, "\n") {
+		codeLines = append(codeLines, fmt.Sprintf("    %s", line))
+	}
+
 	wrapperFile := "wrapper.py"
 	cmd := []string{"python", "/code/wrapper.py"}
 	containerImage := "python:3.12-alpine"
@@ -91,7 +97,7 @@ try:
     exec(code)
 except Exception as e:
     print(json.dumps({'error': str(e)}))
-`, code,
+`, strings.Join(codeLines, "\n"),
 	)
 
 	mounts := []mount.Mount{

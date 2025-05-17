@@ -89,7 +89,7 @@ func createPyContext(code string) *containerContext {
 	wrapperContent := fmt.Sprintf(
 		`
 def __code_wrapper():
-    %s
+%s
 
 import json, os, sys, io
 from contextlib import redirect_stdout

@@ -88,19 +88,21 @@ func createPyContext(code string) *containerContext {
 
 	wrapperContent := fmt.Sprintf(
 		`
-import json
+def __code_wrapper():
+%s
 
-code = '''
-def main():
-    %s
+import json, os, sys, io
+from contextlib import redirect_stdout
 
-print(json.dumps({'result': str(main()) }))
-'''
+sys.stdin = io.StringIO("")
 
 try:
-    exec(code)
+    with redirect_stdout(open(os.devnull, "w")):
+        result = __code_wrapper()
 except Exception as e:
-    print(json.dumps({'error': str(e)}))
+    print(json.dumps({"error": str(e)}))
+else:
+    print(json.dumps({"result": str(result)}))
 `, strings.Join(codeLines, "\n"),
 	)
 

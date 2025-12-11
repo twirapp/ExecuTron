@@ -13,18 +13,11 @@ services:
       - cloudflared
 
   warp:
-    image: caomingjun/warp
+    image: ghcr.io/xxphantom/docker-warp-native:latest
     container_name: executron-warp
     restart: always
-    device_cgroup_rules:
-      - 'c 10:200 rwm'
-    environment:
-      - WARP_SLEEP=12
     cap_add:
       - ALL
-    sysctls:
-      - net.ipv6.conf.all.disable_ipv6=0
-      - net.ipv4.conf.all.src_valid_mark=1
 
 networks:
   twir:
